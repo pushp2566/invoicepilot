@@ -183,6 +183,8 @@ app.post(
 );
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`InvoicePilot running on http://localhost:${port}`));
+if (require.main === module) app.listen(port, () => console.log('InvoicePilot running on port ' + port));
 
-module.exports = { validateDraft, buildFacts };
+module.exports = app;
+module.exports.validateDraft = validateDraft;
+module.exports.buildFacts = buildFacts;
