@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>InvoicePilot — AI invoicing on PayPal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo">IP</span>
+      <div>
+        <h1>InvoicePilot</h1>
+        <p>Paste a client message. AI drafts the invoice. You approve. PayPal sends it.</p>
+      </div>
+    </div>
+    <span id="envBadge" class="badge">checking…</span>
+  </header>
+
+  <main>
+    <section class="stats" id="stats">
+      <div class="stat"><span>Invoices</span><strong id="sCount">–</strong></div>
+      <div class="stat"><span>Paid</span><strong id="sPaid">–</strong></div>
+      <div class="stat"><span>Outstanding</span><strong id="sOut">–</strong></div>
+      <div class="stat warn"><span>Overdue</span><strong id="sOver">–</strong></div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1 · Describe the work</h2>
+        <textarea id="msg" rows="6" placeholder="e.g. Bill Rahul Mehta at Acme Labs (rahul@acmelabs.com) for 40 hours of React Native work at $25/hr, plus a $150 flat fee for app store setup. Due in 15 days."></textarea>
+        <div class="chips">
+          <button class="chip" data-ex="Invoice Sarah Lee (sarah@brightpixel.io) for 12 hours of UI design at $40/hour and 3 logo revisions at $30 each. Net 30.">Design gig</button>
+          <button class="chip" data-ex="Hey, can you bill John Carter from Nimbus Inc, john.carter@nimbus.dev — landing page build flat $600, plus hosting setup $80. Needs to be paid by end of this month.">Landing page</button>
+          <button class="chip" data-ex="Charge Priya for the tutoring sessions: 8 sessions, $20 each. Her email is priya.k@example.com. Due next Friday.">Tutoring</button>
+        </div>
+        <button id="parseBtn" class="primary">✨ Read with AI</button>
+
+        <div id="draftBox" class="hidden">
+          <h2>2 · Review &amp; approve</h2>
+          <div id="warnings"></div>
+          <div class="form">
+            <label>Client name<input id="dName" /></label>
+            <label>Business<input id="dBiz" /></label>
+            <label>Client email<input id="dEmail" type="email" /></label>
+            <label>Currency<input id="dCur" maxlength="3" /></label>
+            <label>Due date<input id="dDue" type="date" /></label>
+          </div>
+          <table class="items">
+            <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Price</th><th>Amount</th><th></th></tr></thead>
+            <tbody id="itemRows"></tbody>
+          </table>
+          <button id="addItem" class="ghost">+ Add item</button>
+          <label class="full">Note to client<textarea id="dNote" rows="2"></textarea></label>
+          <div class="totalRow">Total: <strong id="dTotal">0.00</strong></div>
+          <button id="sendBtn" class="primary">✅ Approve &amp; send via PayPal</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Ask about your invoices</h2>
+        <div class="askRow">
+          <input id="question" placeholder="How much is overdue? Who owes me the most?" />
+          <button id="askBtn" class="primary">Ask</button>
+        </div>
+        <div id="answer" class="answer hidden"></div>
+
+        <div class="listHead">
+          <h2>Invoices</h2>
+          <button id="refreshBtn" class="ghost">↻ Refresh</button>
+        </div>
+        <div id="invoiceList" class="list"><p class="muted">Loading…</p></div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="remindDlg">
+    <form method="dialog">
+      <h2>Payment reminder</h2>
+      <div class="toneRow">
+        Tone:
+        <button type="button" class="chip" data-tone="friendly">Friendly</button>
+        <button type="button" class="chip" data-tone="firm">Firm</button>
+      </div>
+      <label class="full">Subject<input id="rSubject" /></label>
+      <label class="full">Message<textarea id="rNote" rows="6"></textarea></label>
+      <div class="dlgActions">
+        <button value="cancel" class="ghost">Cancel</button>
+        <button type="button" id="rSend" class="primary">Send via PayPal</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
