@@ -1,7 +1,7 @@
 # InvoicePilot — AI invoicing agent on PayPal
 
 **Live demo (PayPal sandbox):** https://invoicepilot-wine.vercel.app
-**Demo video:** https://youtu.be/2ZXlBcP81lA
+**Demo video:** https://youtu.be/utlNBZamSPw
 
 Freelancers lose hours writing invoices and chasing late payments. InvoicePilot turns a plain-English message ("Bill Acme 40 hrs at $25, due in 15 days") into a real PayPal invoice, with a human approval step, and then helps you get paid.
 
