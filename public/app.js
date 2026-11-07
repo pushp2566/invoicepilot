@@ -131,7 +131,7 @@ function renderInvoices(invoices) {
           <div class="meta">#${esc(inv.number)} · ${money(inv.total, inv.currency)} · due ${esc(inv.dueDate || '—')}
             ${inv.overdue ? ` · <b>${inv.daysOverdue} days overdue</b>` : ''}</div>
         </div>
-        <span class="pill ${statusLabel(inv)}">${statusLabel(inv).replace('_', ' ')}</span>
+        <span class="pill ${statusLabel(inv)}">${statusLabel(inv).replace(/_/g, ' ').replace('MARKED AS ', '')}</span>
       </div>
       <div class="actions">
         ${inv.payerLink ? `<a href="${esc(inv.payerLink)}" target="_blank" rel="noopener">Open payer link ↗</a>` : ''}
