@@ -73,17 +73,23 @@ $('itemRows').addEventListener('click', (e) => {
   if (e.target.dataset.rm !== undefined) { items.splice(Number(e.target.dataset.rm), 1); renderItems(); }
 });
 $('addItem').onclick = () => { items.push({ name: '', quantity: 1, unit: 'QUANTITY', unit_price: 0 }); renderItems(); };
-$('dCur').oninput = renderItems;
+$('dCur').onchange = renderItems;
 
 function showDraft({ draft, errors, missing }) {
   $('dName').value = draft.client_name || '';
   $('dBiz').value = draft.client_business_name || '';
   $('dEmail').value = draft.client_email || '';
-  $('dCur').value = draft.currency || 'USD';
+  // The picker only offers USD. If the message asked for something else,
+  // assigning it would leave the <select> blank, so coerce it and say so.
+  const asked = String(draft.currency || 'USD').toUpperCase();
+  $('dCur').value = 'USD';
+  const swapped = asked !== 'USD'
+    ? [`Currency changed from ${asked} to USD — this account can only invoice in USD.`]
+    : [];
   $('dDue').value = draft.due_date || '';
   $('dNote').value = draft.note || '';
   items = draft.items.map((i) => ({ ...i }));
-  const warn = [...new Set([...(missing || []).map((m) => `AI couldn't find: ${m}`), ...(errors || [])])];
+  const warn = [...new Set([...swapped, ...(missing || []).map((m) => `AI couldn't find: ${m}`), ...(errors || [])])];
   $('warnings').innerHTML = warn.map((w) => `<div class="warning">⚠ ${esc(w)}</div>`).join('');
   $('draftBox').classList.remove('hidden');
   renderItems();
