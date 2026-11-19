@@ -1,4 +1,5 @@
 // Thin wrapper around the PayPal Invoicing v2 REST API.
+const { formatAmount } = require('./currencies');
 const BASE =
   process.env.PAYPAL_ENV === 'live'
     ? 'https://api-m.paypal.com'
@@ -119,7 +120,7 @@ async function createAndSend(draft) {
       name: i.name.slice(0, 200),
       description: i.description ? i.description.slice(0, 1000) : undefined,
       quantity: String(i.quantity),
-      unit_amount: { currency_code: draft.currency, value: i.unit_price.toFixed(2) },
+      unit_amount: { currency_code: draft.currency, value: formatAmount(i.unit_price, draft.currency) },
       unit_of_measure: i.unit,
     })),
     configuration: { allow_tip: false, tax_inclusive: false },
@@ -155,7 +156,7 @@ async function markPaid(id) {
   await pp('POST', `/v2/invoicing/invoices/${encodeURIComponent(id)}/payments`, {
     method: 'BANK_TRANSFER',
     payment_date: today(),
-    amount: { currency_code: inv.currency, value: inv.due.toFixed(2) },
+    amount: { currency_code: inv.currency, value: formatAmount(inv.due, inv.currency) },
     note: 'Recorded via InvoicePilot',
   });
   return getInvoice(id);
