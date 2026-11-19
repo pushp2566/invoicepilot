@@ -5,6 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const paypal = require('./paypal');
 const ai = require('./gemini');
+const currencies = require('./currencies');
 
 const app = express();
 app.use(express.json({ limit: '100kb' }));
@@ -36,7 +37,14 @@ function validateDraft(d) {
   if (!draft.client_name) errors.push('Client name is required.');
   if (!draft.client_email || !EMAIL_RE.test(draft.client_email))
     errors.push('A valid client email is required.');
-  if (!/^[A-Z]{3}$/.test(draft.currency)) errors.push('Currency must be a 3-letter code like USD.');
+  // Shape check, then a real check: PayPal only accepts 25 specific codes, so a
+  // well-formed but unsupported one (INR, AED, ...) must fail here rather than
+  // surfacing later as an opaque PayPal 400.
+  if (!/^[A-Z]{3}$/.test(draft.currency)) {
+    errors.push('Currency must be a 3-letter code like USD.');
+  } else if (!currencies.isSupported(draft.currency)) {
+    errors.push(currencies.unsupportedMessage(draft.currency));
+  }
 
   const todayStr = isoDate(new Date());
   if (!draft.due_date || !/^\d{4}-\d{2}-\d{2}$/.test(draft.due_date) || isNaN(Date.parse(draft.due_date))) {
@@ -47,7 +55,8 @@ function validateDraft(d) {
 
   for (const [idx, it] of (d.items || []).entries()) {
     const quantity = Number(it.quantity);
-    const unit_price = round2(Number(it.unit_price));
+    // JPY/HUF/TWD reject fractional amounts, so round to the currency's precision.
+    const unit_price = currencies.roundAmount(Number(it.unit_price), draft.currency);
     const unit = ['HOURS', 'QUANTITY', 'AMOUNT'].includes(it.unit) ? it.unit : 'QUANTITY';
     if (!String(it.name || '').trim()) errors.push(`Item ${idx + 1}: name is required.`);
     if (!(quantity > 0)) errors.push(`Item ${idx + 1}: quantity must be > 0.`);
@@ -62,7 +71,10 @@ function validateDraft(d) {
   }
   if (!draft.items.length) errors.push('At least one line item is required.');
 
-  draft.total = round2(draft.items.reduce((s, i) => s + i.quantity * i.unit_price, 0));
+  draft.total = currencies.roundAmount(
+    draft.items.reduce((s, i) => s + i.quantity * i.unit_price, 0),
+    draft.currency
+  );
   if (draft.total > 50_000) errors.push('Total above 50,000 — please double-check before sending.');
   return { draft, errors };
 }
